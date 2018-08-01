@@ -1,0 +1,29 @@
+{
+  "name": "amqpclient",
+  "version": "1.0.0",
+  "description": "manager client for rabbit mq",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./test/top.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaojing0/node_rabbitmq_client.git"
+  },
+  "keywords": [
+    "mqclient",
+    "mq",
+    "rabbitmq",
+    "node"
+  ],
+  "dependencies": {
+    "amqplib": "^0.5.2",
+    "bluebird": "3.5.0"
+  },
+  "author": "xiaojing0 <2500388820@qq.com> (https://github.com/xiaojing0)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xiaojing0/node_rabbitmq_client/issues"
+  },
+  "homepage": "https://github.com/xiaojing0/node_rabbitmq_client#readme"
+}
