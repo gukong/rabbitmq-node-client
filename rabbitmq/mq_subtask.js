@@ -54,6 +54,17 @@ const rpcListeners = [];
 const rpcSuccessMsg = 'success';
 
 /**
+ * 打印日志信息
+ * @param {string} logMsg
+ */
+function log(logMsg) {
+    if (!isDebugMode) {
+        return;
+    }
+    console.log(logMsg);
+}
+
+/**
  * 重置消息队列状态
  * @return {undefined}
  */
@@ -100,7 +111,7 @@ function createChannel(prefetch) {
         channel.on('close', function () {
             mqConnection.close();
             resetMqState();
-            console.log('[AMQP] channel closed');
+            log('[AMQP] channel closed');
         });
     });
 }
@@ -147,7 +158,7 @@ function connectToMq(mqHost, optionalParams) {
             console.error('[AMQP] reconnecting');
             return setTimeout(connectToMq(mqHost, optionalParams), 1000);
         });
-        console.log('[AMQP] connected');
+        log('[AMQP] connected');
         mqConnection = connection;
         createChannel(optionalParams.prefetch);
     });
@@ -208,7 +219,7 @@ async function sendWorkTask(workQueueName, taskData, optionalParams) {
     // 发送任务消息
     const msgOpts = optionalParams.msgOpts || DEFAULT_MSG_OPTS;
     mqChannel.sendToQueue(workQueueName, new Buffer(JSON.stringify(taskData)), msgOpts);
-    console.log(`[AMQP] sent work task：${workQueueName}`);
+    log(`[AMQP] sent work task：${workQueueName}`);
 }
 
 /**
@@ -236,7 +247,7 @@ async function bindToTaskQueue(workQueueName, consumeMethod, optionalParams) {
     const consumeOpts = optionalParams.consumeOpts || DEFAULT_CONSUME_OPTS;
     // 绑定消费方法
     mqChannel.consume(workQueueName, function (msg) {
-        console.log(`[AMQP] receive work task: ${msg.fields.routingKey}`);
+        log(`[AMQP] receive work task: ${msg.fields.routingKey}`);
         // 这里只需要确保消息抵达，不需要关心消息的处理情况，所以只要消息抵达了就立即发送确认信息，以提高队列效率
         if (consumeOpts && !consumeOpts.noAck) {
             mqChannel.ack(msg); // 确认消息已经被处理
@@ -346,7 +357,7 @@ async function rpcRequest(rpcQueueName, rpcData) {
             throw new Error('[AMQP] rpc request timeout!');
         }, RPC_MAX_TIME_OUT_PERIOD);
 
-        console.log('[AMQP] sent rpc request: ', rpcQueueName);
+        log('[AMQP] sent rpc request: ', rpcQueueName);
         // 发送请求
         mqChannel.sendToQueue(
             rpcQueueName,
@@ -384,7 +395,7 @@ function checkReceiveRpc(rpcQueueName, consumeMethod) {
 async function bindToRpcQueue(rpcQueueName, consumeMethod) {
     // 绑定消费方法
     mqChannel.consume(rpcQueueName, async function (msg) {
-        console.log(`[AMQP] receive rec request: ${msg.fields.routingKey}`);
+        log(`[AMQP] receive rec request: ${msg.fields.routingKey}`);
         const parsedData = JSON.parse(msg.content.toString()) || {};
         let result = null;
         try {
