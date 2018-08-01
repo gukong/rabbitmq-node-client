@@ -29,20 +29,20 @@ class MqManager {
      * @param {number?} optionalParams.isDebugMode 是测试模式
      * @return {undefined}
      */
-    static init(mqHost, optionalParams) {
+    static init(mqHost, optionalParams = {}) {
         subtask.connectToMq(mqHost, optionalParams);
     }
 
     /**
      * [工作队列] 发送任务到指定的任务时间队列
      * @param {string} workQueueName 工作队列名字
-     * @param {object} taskData 任务数据
+     * @param {string} taskData 任务数据
      * @param {object?} optionalParams 可选参数
      * @param {object?} optionalParams.queueOpts 工作队列参数配置
      * @param {object?} optionalParams.msgOpts 消息参数配置
      * @return {undefined}
      */
-    static async sendWorkTask(workQueueName, taskData, optionalParams) {
+    static async sendWorkTask(workQueueName, taskData, optionalParams = {}) {
         // 检查任务参数
         subtask.checkSendWorkTask(workQueueName, taskData);
         // 声明任务队列
@@ -52,7 +52,7 @@ class MqManager {
             return;
         }
         // 发送任务到任务队列
-        await subtask.sendWorkTask(workQueueName, taskData, optionalParams);
+        subtask.sendWorkTask(workQueueName, taskData, optionalParams);
     }
 
     /**
@@ -64,7 +64,7 @@ class MqManager {
      * @param {object?} optionalParams.consumeOpts 消费配置
      * @return {undefined}
      */
-    static async receiveWorkTask(workQueueName, consumeMethod, optionalParams) {
+    static async receiveWorkTask(workQueueName, consumeMethod, optionalParams = {}) {
         // 检查参数
         subtask.checkReceiveWorkTask(workQueueName, consumeMethod);
         // 声明任务队列
@@ -80,7 +80,7 @@ class MqManager {
     /**
      * [RPC队列] 发送RPC请求
      * @param {string} rpcQueueName rpc队列名字
-     * @param {object} rpcData rpc请求数据
+     * @param {string} rpcData rpc请求数据
      * @param {number?} waitTimes 等待次数
      * @return {*}
      */

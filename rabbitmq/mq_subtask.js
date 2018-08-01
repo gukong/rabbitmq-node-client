@@ -58,10 +58,9 @@ const rpcSuccessMsg = 'success';
  * @param {string} logMsg
  */
 function log(logMsg) {
-    if (!isDebugMode) {
-        return;
+    if (isDebugMode) {
+        console.log(logMsg);
     }
-    console.log(logMsg);
 }
 
 /**
@@ -86,7 +85,6 @@ function closeConnOnErr(err) {
     console.error('[AMQP] closeConnOnErr', JSON.stringify(err));
     // 这里断开连接以后，会被监听到连接断开的回调事件然后重新建立连接
     mqConnection.close();
-    resetMqState();
     return true;
 }
 
@@ -110,7 +108,6 @@ function createChannel(prefetch) {
         });
         channel.on('close', function () {
             mqConnection.close();
-            resetMqState();
             log('[AMQP] channel closed');
         });
     });
@@ -142,6 +139,7 @@ function connectToMq(mqHost, optionalParams) {
     if (optionalParams.isDebugMode) {
         isDebugMode = true;
     }
+    log('[AMQP] begin connecting...');
     amqp.connect(mqHost, function (err, connection) {
         isConnecting = false;
         resetMqState();
@@ -175,14 +173,14 @@ function cacheOperations(operation) {
 /**
  * 检查发送工作任务的参数
  * @param {string} workQueueName 工作队列名字
- * @param {object} taskData 任务数据
+ * @param {string} taskData 任务数据
  */
 function checkSendWorkTask(workQueueName, taskData) {
-    if (!workQueueName || !taskData) {
+    if (!workQueueName || taskData === undefined) {
         throw new Error(`[AMQP] error: ${workQueueName}, taskData=${taskData}, can't be empty!`);
     }
-    if (typeof workQueueName !== 'string') {
-        throw new Error(`[AMQP] error: workQueueName type = ${typeof workQueueName}, type wrong!`);
+    if (typeof workQueueName !== 'string' || typeof taskData !== 'string') {
+        throw new Error(`[AMQP] error: workQueueName type = ${typeof workQueueName}, taskData type = ${typeof taskData}, type wrong!`);
     }
 }
 
@@ -209,16 +207,16 @@ async function assertTaskQueue(workQueueName, optionalParams) {
 /**
  * 发送工作任务到工作任务队列
  * @param {string} workQueueName
- * @param {object} taskData
+ * @param {string} taskData
  * @param {object?} optionalParams 可选参数
  * @param {object?} optionalParams.queueOpts 工作队列参数配置
  * @param {object?} optionalParams.msgOpts 消息参数配置
  * @param {object?} optionalParams.consumeOpts 消费配置
  */
-async function sendWorkTask(workQueueName, taskData, optionalParams) {
+function sendWorkTask(workQueueName, taskData, optionalParams) {
     // 发送任务消息
     const msgOpts = optionalParams.msgOpts || DEFAULT_MSG_OPTS;
-    mqChannel.sendToQueue(workQueueName, new Buffer(JSON.stringify(taskData)), msgOpts);
+    mqChannel.sendToQueue(workQueueName, new Buffer(taskData), msgOpts);
     log(`[AMQP] sent work task：${workQueueName}`);
 }
 
@@ -252,7 +250,7 @@ async function bindToTaskQueue(workQueueName, consumeMethod, optionalParams) {
         if (consumeOpts && !consumeOpts.noAck) {
             mqChannel.ack(msg); // 确认消息已经被处理
         }
-        const parsedData = JSON.parse(msg.content.toString()) || {};
+        const parsedData = msg.content.toString();
         consumeMethod(parsedData);
     }, consumeOpts)
 }
@@ -260,14 +258,14 @@ async function bindToTaskQueue(workQueueName, consumeMethod, optionalParams) {
 /**
  * 检查发送RPC请求的参数
  * @param {string} rpcQueueName
- * @param {object} rpcData
+ * @param {string} rpcData
  */
 function checkSendRPCRequest(rpcQueueName, rpcData) {
-    if (!rpcQueueName || !rpcData) {
+    if (!rpcQueueName || rpcData === undefined) {
         throw new Error(`[AMQP] error: rpcQueueName=${rpcQueueName}, rpcData=${rpcData}, can't be empty!`);
     }
-    if (typeof rpcQueueName !== 'string') {
-        throw new Error(`[AMQP] error: rpcQueueName type = ${typeof rpcQueueName}, type wrong!`);
+    if (typeof rpcQueueName !== 'string' || typeof rpcData !== 'string') {
+        throw new Error(`[AMQP] error: rpcQueueName type = ${typeof rpcQueueName}, rpcData type = ${typeof rpcData}, type wrong!`);
     }
 }
 
@@ -293,8 +291,8 @@ function receiveRpcResult() {
             return;
         }
         const result = JSON.parse(msg.content.toString());
-        if (result.rpc_message !== rpcSuccessMsg) {
-            rpcListeners[listenerIndex].reject(new Error(result.rpc_message));
+        if (result && result.rpc_error_message) {
+            rpcListeners[listenerIndex].reject(new Error(result.rpc_error_message));
         } else {
             rpcListeners[listenerIndex].resolve(JSON.parse(msg.content.toString()) || {});
         }
@@ -341,7 +339,7 @@ async function assertRpcQueue(rpcQueueName, isClient) {
 /**
  * 发送rpc请求
  * @param {string} rpcQueueName
- * @param {object} rpcData
+ * @param {string} rpcData
  * @return {Promise<void>}
  */
 async function rpcRequest(rpcQueueName, rpcData) {
@@ -357,11 +355,11 @@ async function rpcRequest(rpcQueueName, rpcData) {
             throw new Error('[AMQP] rpc request timeout!');
         }, RPC_MAX_TIME_OUT_PERIOD);
 
-        log('[AMQP] sent rpc request: ', rpcQueueName);
+        log(`[AMQP] sent rpc request: ', ${rpcQueueName}`);
         // 发送请求
         mqChannel.sendToQueue(
             rpcQueueName,
-            new Buffer(JSON.stringify(rpcData)),
+            new Buffer(rpcData),
             // 需要创建唯一的correlationId和指定匿名的信道
             {correlationId: correlationId, replyTo: rpcCBQueueName}
         );
@@ -396,15 +394,14 @@ async function bindToRpcQueue(rpcQueueName, consumeMethod) {
     // 绑定消费方法
     mqChannel.consume(rpcQueueName, async function (msg) {
         log(`[AMQP] receive rec request: ${msg.fields.routingKey}`);
-        const parsedData = JSON.parse(msg.content.toString()) || {};
+        const parsedData = msg.content.toString();
         let result = null;
         try {
             result = await consumeMethod(parsedData);
-            Object.assign(result, {rpc_message: rpcSuccessMsg});
         } catch (error) {
             console.error(JSON.stringify(error));
             result = {
-                rpc_message: error.message || 'unknown error',
+                rpc_error_message: error.message || 'unknown error',
             };
         }
         // 将处理结果通过replyTo指定的信道返回
