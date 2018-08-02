@@ -351,8 +351,10 @@ async function rpcRequest(rpcQueueName, rpcData) {
         // 超时监控
         setTimeout(() => {
             const deleteIndex = rpcListeners.findIndex(listener => listener.correlationId === correlationId);
-            rpcListeners.splice(deleteIndex, 1);
-            throw new Error('[AMQP] rpc request timeout!');
+            if (deleteIndex >= 0) {
+                rpcListeners.splice(deleteIndex, 1);
+                throw new Error('[AMQP] rpc request timeout!');
+            }
         }, RPC_MAX_TIME_OUT_PERIOD);
 
         log(`[AMQP] sent rpc request: ', ${rpcQueueName}`);
