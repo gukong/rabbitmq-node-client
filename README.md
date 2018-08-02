@@ -81,4 +81,4 @@ The data returned by the rpc request is a serialized character type. If the retu
 
 ## Contributing
 
-[Contributors](xiaojing0.com)
+[Contributors](http://xiaojing0.com)
