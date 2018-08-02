@@ -1,5 +1,5 @@
 {
-  "name": "amqpclient",
+  "name": "@xiaojing0/amqpclient",
   "version": "1.0.0",
   "description": "manager client for rabbit mq",
   "main": "index.js",
@@ -25,5 +25,8 @@
   "bugs": {
     "url": "https://github.com/xiaojing0/node_rabbitmq_client/issues"
   },
-  "homepage": "https://github.com/xiaojing0/node_rabbitmq_client#readme"
+  "homepage": "https://github.com/xiaojing0/node_rabbitmq_client#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
 }
