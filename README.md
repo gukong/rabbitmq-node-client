@@ -1,5 +1,7 @@
 # node_rabbitmq_client
-Simple and highly available, just few line code to send or receive MQ message!
+This is the node client of rabbitmq. Before using this client, you must confirm:
+1. rabbitmq is correctly installed in the current environment; 
+2. ES6 and above are required.
 
 ## Installation
 
