@@ -10,7 +10,7 @@ This is the node client of rabbitmq. Before using this client, you must confirm:
 ## Usage
 
 
-- First, we need to init a connection:
+**First, we need to init a connection**:
 ```
 const amqpclient = require('amqpclient');
 amqpclient.init('amqp://localhost?heartbeat=60', {isDebugMode: true, prefetch: 100});
@@ -27,7 +27,7 @@ configParams.prefetch: 100, // [optional] default to 0 (no limit), This paramete
 *Note:*
 The process of establishing a connection is completely asynchronous. You don't have to worry about requests that cannot be sent and answered during the connection establishment process. Because the client has a caching mechanism inside, all requests will be executed after the connection is established.
   
-- Send and receive a work task:
+**Send and receive a work task**:
 ```
 amqpclient.receiveWorkTask(workQueueName, consumeMethod, optionalParams);
 amqpclient.sendWorkTask(workQueueName, taskData, optionalParams)
@@ -53,7 +53,7 @@ optionalParams.queueOpts: Object, // [optional] Queue config parameter, default 
 optionalParams.msgOpts: Object, // [optional] message config parameter, default to {persistent: true}, support all queue configuration parameters
 ```
 
-- Send and receive RPC:
+**Send and receive RPC**:
 ```
 amqpclient.receiveRpcRequest(rpcQueueName, consumeMethod);
 
