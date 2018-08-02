@@ -13,7 +13,7 @@ Simple and highly available, just few line code to send or receive MQ message!
 const amqpclient = require('amqpclient');
 amqpclient.init('amqp://localhost?heartbeat=60', {isDebugMode: true, prefetch: 100});
 ```
-The initialization method receives two parameters, connectHost and configParams:
+- The initialization method receives two parameters, connectHost and configParams:
 ```
 connectHost: amqp://localhost?heartbeat=60 // Message queue connection address
 
@@ -30,7 +30,7 @@ The process of establishing a connection is completely asynchronous. You don't h
 amqpclient.receiveWorkTask(workQueueName, consumeMethod, optionalParams);
 amqpclient.sendWorkTask(workQueueName, taskData, optionalParams)
 ```
-The receiveWorkTask method params:
+- The receiveWorkTask method params:
 ```
 workQueueName: String, // Work queue name, must be unique
 
@@ -40,7 +40,7 @@ optionalParams: Object, // [optional] The config params of work queue
 optionalParams.queueOpts: Object, // [optional] Queue config parameter, default to {durable: true}, support all queue configuration parameters
 optionalParams.consumeOpts: Object, // [optional] consume config parameter, default to {noAck: false}, support all queue configuration parameters
 ```
-The sendWorkTask method params:
+- The sendWorkTask method params:
 ```
 workQueueName: String, // Work queue name, must be unique
 
@@ -57,13 +57,13 @@ amqpclient.receiveRpcRequest(rpcQueueName, consumeMethod);
 
 const result = await amqpclient.sendRpcRequest(rpcQueueName, rpcData);
 ```
-The receiveRpcRequest method params:
+- The receiveRpcRequest method params:
 ```
 rpcQueueName: String, // rpc queue name, must be unique
 
 consumeMethod: Function, // A consumption method for a rpc task, which is used to receive a message that processes a rpc queue
 ```
-The sendRpcRequest method params:
+- The sendRpcRequest method params:
 ```
 rpcQueueName: String, // rpc queue name, must be unique
 
