@@ -12,7 +12,7 @@ This is the node client of rabbitmq. Before using this client, you must confirm:
 
 **First, we need to init a connection**:
 ```
-const amqpclient = require('amqpclient');
+const amqpclient = require('@xiaojing0/amqpclient');
 amqpclient.init('amqp://localhost?heartbeat=60', {isDebugMode: true, prefetch: 100});
 ```
 - The initialization method receives two parameters, connectHost and configParams:
