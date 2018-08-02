@@ -21,11 +21,11 @@ amqpclient.sendWorkTask('workQueueName', 'hi!!!')
 // rpc task queue
 amqpclient.receiveRpcRequest('rpcQueueName', function (msg) {
     console.log(msg); // print: 'your name?'
-    return 'I'm rpc server!';
+    return 'rpc server!';
 });
 amqpclient.sendRpcRequest('rpcQueueName', 'your name?')
     .then((result) => {
-        console.log(result); // print: 'I'm rpc server!'
+        console.log(result); // print: 'rpc server!'
     });
 ```
 
