@@ -5,7 +5,7 @@ This is the node client of rabbitmq. Before using this client, you must confirm:
 
 ## Installation
 
-  `npm install amqpclient`
+  `npm i @xiaojing0/amqpclient`
 
 ## Usage
 
