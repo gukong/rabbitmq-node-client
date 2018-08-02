@@ -6,6 +6,28 @@ This is the node client of rabbitmq. Before using this client, you must confirm:
 ## Installation
 
   `npm i @xiaojing0/amqpclient`
+  
+## Example
+```
+const amqpclient = require('@xiaojing0/amqpclient');
+amqpclient.init('amqp://localhost?heartbeat=60', {isDebugMode: true, prefetch: 100});
+
+// work task queue
+amqpclient.receiveWorkTask('workQueueName', function (msg) {
+    console.log(msg); // print: 'hi!!!'
+});
+amqpclient.sendWorkTask('workQueueName', 'hi!!!')
+
+// rpc task queue
+amqpclient.receiveRpcRequest('rpcQueueName', function (msg) {
+    console.log(msg); // print: 'your name?'
+    return 'I'm rpc server!';
+});
+amqpclient.sendRpcRequest('rpcQueueName', 'your name?')
+    .then((result) => {
+        console.log(result); // print: 'I'm rpc server!'
+    });
+```
 
 ## Usage
 
@@ -17,7 +39,7 @@ amqpclient.init('amqp://localhost?heartbeat=60', {isDebugMode: true, prefetch: 1
 ```
 - The initialization method receives two parameters, connectHost and configParams:
 ```
-connectHost: amqp://localhost?heartbeat=60 // Message queue connection address
+connectHost: 'amqp://localhost?heartbeat=60' // Message queue connection address
 
 configParams: {isDebugMode: true, prefetch: 100} // [optional] Message queue config params
 configParams.isDebugMode: true, // [optional] default to false, if set to true will show all AMQP logs
