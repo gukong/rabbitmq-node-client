@@ -41,9 +41,14 @@ amqpclient.init('amqp://localhost?heartbeat=60', {isDebugMode: true, prefetch: 1
 ```
 connectHost: 'amqp://localhost?heartbeat=60' // Message queue connection address
 
-configParams: {isDebugMode: true, prefetch: 100} // [optional] Message queue config params
-configParams.isDebugMode: true, // [optional] default to false, if set to true will show all AMQP logs
-configParams.prefetch: 100, // [optional] default to 0 (no limit), This parameter limits the number of concurrent processing by the client in a unit of time.
+// [optional] Message queue config params
+configParams: Object
+
+// [optional] default to false, if set to true will show all AMQP logs
+configParams.isDebugMode: Boolean,
+
+ // [optional] default to 0 (no limit), This parameter limits the number of concurrent processing by the client in a unit of time.
+configParams.prefetch: Number,
 ```
 
 *Note:*
@@ -60,9 +65,14 @@ workQueueName: String, // Work queue name, must be unique
 
 consumeMethod: Function, // A consumption method for a work task, which is used to receive a message that processes a task queue
 
-optionalParams: Object, // [optional] The config params of work queue 
-optionalParams.queueOpts: Object, // [optional] Queue config parameter, default to {durable: true}, support all queue configuration parameters
-optionalParams.consumeOpts: Object, // [optional] consume config parameter, default to {noAck: false}, support all queue configuration parameters
+ // [optional] The config params of work queue 
+optionalParams: Object,
+
+ // [optional] Queue config parameter, default to {durable: true}, support all queue configuration parameters
+optionalParams.queueOpts: Object,
+
+ // [optional] consume config parameter, default to {noAck: false}, support all message configuration parameters
+optionalParams.consumeOpts: Object,
 ```
 - The sendWorkTask method params:
 ```
@@ -70,9 +80,15 @@ workQueueName: String, // Work queue name, must be unique
 
 taskData: String, // Task data must be String type
 
-optionalParams: Object, // [optional] The config params of work queue 
-optionalParams.queueOpts: Object, // [optional] Queue config parameter, default to {durable: true}, support all queue configuration parameters
-optionalParams.msgOpts: Object, // [optional] message config parameter, default to {persistent: true}, support all queue configuration parameters
+
+ // [optional] The config params of work queue 
+optionalParams: Object,
+
+ // [optional] Queue config parameter, default to {durable: true}, support all queue configuration parameters
+optionalParams.queueOpts: Object,
+
+ // [optional] message config parameter, default to {persistent: true}, support all message configuration parameters
+optionalParams.msgOpts: Object,
 ```
 
 **Send and receive RPC**:
