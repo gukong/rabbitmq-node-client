@@ -20,10 +20,10 @@ function promiseTimeout(timeout = 500) {
 
 describe('############################################## begin test ##############################################', () => {
     describe('init', () => {
-        it('send 5 WorkTask before connected', async () => {
+        it('send 100 WorkTask before connected', async () => {
             const workQueueName = 'work_task';
             const taskData = 'hello world';
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 100; i++) {
                 await MqManager.sendWorkTask(workQueueName, taskData);
             }
             await promiseTimeout(1000);
@@ -34,10 +34,10 @@ describe('############################################## begin test ############
             await promiseTimeout(1000);
         });
         describe('work task', () => {
-            it('send 5 WorkTask after connected', async () => {
+            it('send 100 WorkTask after connected', async () => {
                 const workQueueName = 'work_task';
                 const taskData = 'hello world';
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 100; i++) {
                     await MqManager.sendWorkTask(workQueueName, taskData);
                 }
                 await promiseTimeout(1000);
@@ -49,7 +49,7 @@ describe('############################################## begin test ############
                     totalWorkTask++;
                 });
                 await promiseTimeout(1000);
-                assert.equal(totalWorkTask, 10);
+                assert.equal(totalWorkTask, 200);
             });
             it('send non string data', async () => {
                 const workQueueName = 'work_task';
@@ -62,13 +62,25 @@ describe('############################################## begin test ############
             });
         });
         describe('rpc task', () => {
-            it('send 5 rpc request after connected', async () => {
+            it('send 100 rpc request after connected', async () => {
                 const rpcQueueName = 'rpc_test_task';
                 MqManager.receiveRpcRequest(rpcQueueName, function (msg) {
                     return msg;
                 });
 
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 100; i++) {
+                    const rpcData = String(i);
+                    const result = await MqManager.sendRpcRequest(rpcQueueName, rpcData);
+                    assert.equal(result, rpcData);
+                }
+            });
+            it('send 100 rpc request to other rpc queue', async () => {
+                const rpcQueueName = 'other_rpc_test_task';
+                MqManager.receiveRpcRequest(rpcQueueName, function (msg) {
+                    return msg;
+                });
+
+                for (let i = 0; i < 100; i++) {
                     const rpcData = String(i);
                     const result = await MqManager.sendRpcRequest(rpcQueueName, rpcData);
                     assert.equal(result, rpcData);

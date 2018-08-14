@@ -44,12 +44,12 @@ let mqConnection = null;
 let mqChannel = null;
 // 操作缓存队列
 let listenerCallBacks = [];
-// rpc匿名队列名字
-let rpcCBQueueName = null;
-// 是debug模式
-let isDebugMode = false;
 // rpc监听回调队列
 const rpcListeners = [];
+// 是debug模式
+let isDebugMode = false;
+// rpc回调队列映射信息
+let rpcCBQueueMap = {};
 // rpc请求成功消息
 const rpcSuccessMsg = 'success';
 
@@ -70,7 +70,7 @@ function log(logMsg) {
 function resetMqState() {
     mqConnection = null;
     mqChannel = null;
-    rpcCBQueueName = null;
+    rpcCBQueueMap = {};
 }
 
 /**
@@ -281,12 +281,16 @@ function getCorrelationId() {
 
 /**
  * 接收rpc回调事件
+ * @param {string} rpcQueueName
+ * @param {string} rpcCBQueueName
  * @return {undefined}
  */
-function receiveRpcResult() {
+function receiveRpcResult(rpcQueueName, rpcCBQueueName) {
     // 接收结果
     mqChannel.consume(rpcCBQueueName, function (msg) {
-        const listenerIndex = rpcListeners.findIndex(listener => listener.correlationId === msg.properties.correlationId);
+        const listenerIndex = rpcListeners.findIndex((listener) => {
+            return listener.rpcQueueName === rpcQueueName && listener.correlationId === msg.properties.correlationId
+        });
         if (listenerIndex < 0) {
             return;
         }
@@ -316,7 +320,7 @@ async function assertRpcQueue(rpcQueueName, isClient) {
         mqChannel.assertQueue(rpcQueueName, {durable: false}, function (err) {
             const isClosed = closeConnOnErr(err);
             if (isClient && !isClosed) {
-                if (rpcCBQueueName) {
+                if (rpcCBQueueMap[rpcQueueName]) {
                     resolve(true);
                     return;
                 }
@@ -324,10 +328,10 @@ async function assertRpcQueue(rpcQueueName, isClient) {
                 mqChannel.assertQueue('', {exclusive: true}, function (err, anonymousQueue) {
                     const isClosed = closeConnOnErr(err);
                     if (!isClosed) {
-                        rpcCBQueueName = anonymousQueue.queue;
+                        Object.assign(rpcCBQueueMap, {[rpcQueueName]: anonymousQueue.queue});
                     }
                     resolve(!isClosed);
-                    receiveRpcResult();
+                    receiveRpcResult(rpcQueueName, anonymousQueue.queue);
                 });
             } else {
                 resolve(!isClosed);
@@ -345,12 +349,12 @@ async function assertRpcQueue(rpcQueueName, isClient) {
 async function rpcRequest(rpcQueueName, rpcData) {
     // 发送rpc请求并等待回包
     return new Promise((resolve, reject) => {
-
         const correlationId = getCorrelationId();
-
         // 超时监控
         setTimeout(() => {
-            const deleteIndex = rpcListeners.findIndex(listener => listener.correlationId === correlationId);
+            const deleteIndex = rpcListeners.findIndex((listener) => {
+                return listener.rpcQueueName === rpcQueueName && listener.correlationId === correlationId;
+            });
             if (deleteIndex >= 0) {
                 rpcListeners.splice(deleteIndex, 1);
                 throw new Error('[AMQP] rpc request timeout!');
@@ -363,9 +367,10 @@ async function rpcRequest(rpcQueueName, rpcData) {
             rpcQueueName,
             new Buffer(rpcData),
             // 需要创建唯一的correlationId和指定匿名的信道
-            {correlationId: correlationId, replyTo: rpcCBQueueName}
+            {correlationId: correlationId, replyTo: rpcCBQueueMap[rpcQueueName]}
         );
         rpcListeners.push({
+            rpcQueueName,
             correlationId,
             resolve,
             reject,
