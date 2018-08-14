@@ -330,8 +330,8 @@ async function assertRpcQueue(rpcQueueName, isClient) {
                     if (!isClosed) {
                         Object.assign(rpcCBQueueMap, {[rpcQueueName]: anonymousQueue.queue});
                     }
-                    resolve(!isClosed);
                     receiveRpcResult(rpcQueueName, anonymousQueue.queue);
+                    resolve(!isClosed);
                 });
             } else {
                 resolve(!isClosed);
