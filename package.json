@@ -1,6 +1,6 @@
 {
   "name": "@xiaojing0/amqpclient",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "manager client for rabbit mq",
   "main": "index.js",
   "scripts": {
